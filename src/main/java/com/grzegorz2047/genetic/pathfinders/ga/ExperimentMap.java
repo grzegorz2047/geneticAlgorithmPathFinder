@@ -8,25 +8,25 @@ import java.util.List;
 public class ExperimentMap {
     private static final int MAP_HEIGHT = 10;
     private static final int MAP_WIDTH = 15;
-    private static final int END_POSITION = 8;
-    private static final int START_POSITION = 5;
+    private static final int END_POSITION_ID = 8;
+    private static final int START_POSITION_ID = 5;
     private static final int[][] map = {
             {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
             {1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1},
-            {END_POSITION, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1},
             {1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1},
-            {1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1},
+            {1, 0, 0, 0, END_POSITION_ID, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1},
             {1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1},
             {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1},
-            {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, START_POSITION},
+            {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, START_POSITION_ID},
             {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
             {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
     };
 
-    private static final int startX = 14;
-    private static final int startY = 7;
-    private static final int endX = 0;
-    private static final int endY = 2;
+    private static int startX;
+    private static int startY;
+    private static int endX;
+    private static int endY;
 
     private final int[][] memoryPath;
     private final int NORTH = 0;
@@ -39,6 +39,19 @@ public class ExperimentMap {
     public ExperimentMap() {
         memoryPath = new int[MAP_HEIGHT][MAP_WIDTH];
         resetMemory();
+        for(int x = 0; x < map.length;x++) {
+            for(int y = 0; y < map.length;y++) {
+                int cellType = map[y][x];
+                if(cellType == END_POSITION_ID) {
+                    endX = x;
+                    endY = y;
+                }
+                if(cellType == START_POSITION_ID) {
+                    startX = x;
+                    startY = y;
+                }
+            }
+        }
     }
 
     public ExperimentMap(int[][] cBobsMap) {
@@ -60,7 +73,7 @@ public class ExperimentMap {
                         gc.setFill(Color.BLACK);
                         gc.fillRect(left, top, blockSizeX, blockSizeY);
                     }
-                    case START_POSITION, END_POSITION -> {
+                    case START_POSITION_ID, END_POSITION_ID -> {
                         gc.setFill(Color.RED);
                         gc.fillRect(left, top, blockSizeX, blockSizeY);
                     }
