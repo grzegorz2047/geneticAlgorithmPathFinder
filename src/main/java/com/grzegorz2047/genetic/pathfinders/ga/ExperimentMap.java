@@ -1,27 +1,19 @@
 package com.grzegorz2047.genetic.pathfinders.ga;
 
+import com.grzegorz2047.genetic.pathfinders.maploader.InternalMapData;
+import com.grzegorz2047.genetic.pathfinders.MapData;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.util.List;
 
 public class ExperimentMap {
-    private static final int MAP_HEIGHT = 10;
-    private static final int MAP_WIDTH = 15;
-    private static final int END_POSITION_ID = 8;
-    private static final int START_POSITION_ID = 5;
-    private static final int[][] map = {
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-            {1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1},
-            {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1},
-            {1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1},
-            {1, 0, 0, 0, END_POSITION_ID, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1},
-            {1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1},
-            {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1},
-            {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, START_POSITION_ID},
-            {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-    };
+
+
+    public static final int OBSTACLE = 1;
+    public static final int END_POSITION_ID = 8;
+    public static final int START_POSITION_ID = 5;
+
 
     private static int startX;
     private static int startY;
@@ -35,18 +27,28 @@ public class ExperimentMap {
     private final int WEST = 3;
     private final int initialSquareSize = 20;
 
+    static {
+        map = new InternalMapData();
+        initStartAndEndPos();
+    }
+
+    private static MapData map;
 
     public ExperimentMap() {
-        memoryPath = new int[MAP_HEIGHT][MAP_WIDTH];
+        memoryPath = new int[map.getMapHeight()][map.getMapWidth()];
         resetMemory();
-        for(int x = 0; x < map.length;x++) {
-            for(int y = 0; y < map.length;y++) {
-                int cellType = map[y][x];
-                if(cellType == END_POSITION_ID) {
+
+    }
+
+    private static void initStartAndEndPos() {
+        for (int y = 0; y < map.getMap().length; y++) {
+            for (int x = 0; x < map.getMap()[y].length; x++) {
+                int cellType = map.getMap()[y][x];
+                if (cellType == END_POSITION_ID) {
                     endX = x;
                     endY = y;
                 }
-                if(cellType == START_POSITION_ID) {
+                if (cellType == START_POSITION_ID) {
                     startX = x;
                     startY = y;
                 }
@@ -55,25 +57,35 @@ public class ExperimentMap {
     }
 
     public ExperimentMap(int[][] cBobsMap) {
+        initStartAndEndPos();
         memoryPath = cBobsMap;
     }
 
-    public void renderMap(GraphicsContext gc, int canvasWidth, int canvasHeight) {
-        int blockSizeX = (canvasWidth - 2 * initialSquareSize) / MAP_WIDTH;
-        int blockSizeY = (canvasHeight - 2 * initialSquareSize) / MAP_HEIGHT;
+    public static void loadMap(MapData mapData) {
+        map = mapData;
+        initStartAndEndPos();
+    }
 
-        for (int y = 0; y < MAP_HEIGHT; y++) {
-            for (int x = 0; x < MAP_WIDTH; x++) {
+    public void renderMap(GraphicsContext gc, int canvasWidth, int canvasHeight) {
+        int blockSizeX = (canvasWidth - 2 * initialSquareSize) / map.getMapWidth();
+        int blockSizeY = (canvasHeight - 2 * initialSquareSize) / map.getMapHeight();
+
+        for (int y = 0; y < map.getMapHeight(); y++) {
+            for (int x = 0; x < map.getMapWidth(); x++) {
                 int left = initialSquareSize + (blockSizeX * x);
                 int top = initialSquareSize + (blockSizeY * y);
 
-                int mapCell = map[y][x];
+                int mapCell = map.getMap()[y][x];
                 switch (mapCell) {
                     case 1 -> {
                         gc.setFill(Color.BLACK);
                         gc.fillRect(left, top, blockSizeX, blockSizeY);
                     }
-                    case START_POSITION_ID, END_POSITION_ID -> {
+                    case START_POSITION_ID -> {
+                        gc.setFill(Color.GREEN);
+                        gc.fillRect(left, top, blockSizeX, blockSizeY);
+                    }
+                    case END_POSITION_ID -> {
                         gc.setFill(Color.RED);
                         gc.fillRect(left, top, blockSizeX, blockSizeY);
                     }
@@ -83,13 +95,13 @@ public class ExperimentMap {
     }
 
     public void memoryRenderPath(GraphicsContext gc, int canvasWidth, int canvasHeight) {
-        int adjustedSquareSizeX = (canvasWidth - 2 * initialSquareSize) / MAP_WIDTH;
-        int adjustedSquareSizeY = (canvasHeight - 2 * initialSquareSize) / MAP_HEIGHT;
+        int adjustedSquareSizeX = (canvasWidth - 2 * initialSquareSize) / map.getMapWidth();
+        int adjustedSquareSizeY = (canvasHeight - 2 * initialSquareSize) / map.getMapHeight();
 
         gc.setFill(Color.LIGHTGRAY);
         int countPathTracks = 0;
-        for (int posY = 0; posY < MAP_HEIGHT; posY++) {
-            for (int posX = 0; posX < MAP_WIDTH; posX++) {
+        for (int posY = 0; posY < map.getMapHeight(); posY++) {
+            for (int posX = 0; posX < map.getMapWidth(); posX++) {
                 if (memoryPath[posY][posX] == 1) {
                     int left = initialSquareSize + (adjustedSquareSizeX * posX);
                     int top = initialSquareSize + (adjustedSquareSizeY * posY);
@@ -98,6 +110,7 @@ public class ExperimentMap {
                 }
             }
         }
+        //System.out.println(countPathTracks);
     }
 
     public double calculateFitness(List<Integer> currentPath) {
@@ -115,7 +128,7 @@ public class ExperimentMap {
                     }
                 }
                 case SOUTH -> {
-                    boolean isOutOfBounds = posY + 1 >= MAP_HEIGHT;
+                    boolean isOutOfBounds = posY + 1 >= map.getMapHeight();
                     if (isOutOfBounds) {
                         continue;
                     }
@@ -124,7 +137,7 @@ public class ExperimentMap {
                     }
                 }
                 case EAST -> {
-                    boolean isOutOfBounds = posX + 1 >= MAP_WIDTH;
+                    boolean isOutOfBounds = posX + 1 >= map.getMapWidth();
                     if (isOutOfBounds) {
                         continue;
                     }
@@ -147,27 +160,30 @@ public class ExperimentMap {
         int diffX = Math.abs(posX - endX);
         int diffY = Math.abs(posY - endY);
 
-
         return 1.0 / (double) (diffX + diffY + 1);
     }
-
-    private static int getNextUpPositionCell(int posX, int posY) {
-        return map[posY - 1][posX];
+    public static double calculateDistance(double x1, double y1, double x2, double y2) {
+        double deltaX = x2 - x1;
+        double deltaY = y2 - y1;
+        return Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+    }
+    private int getNextUpPositionCell(int posX, int posY) {
+        return map.getMap()[posY - 1][posX];
     }
 
-    private static int getNextDownPositionCell(int posX, int posY) {
-        return map[posY + 1][posX];
+    private int getNextDownPositionCell(int posX, int posY) {
+        return map.getMap()[posY + 1][posX];
     }
 
-    private static int getNextLeftPositionCell(int posX, int posY) {
-        return map[posY][posX + 1];
+    private int getNextLeftPositionCell(int posX, int posY) {
+        return map.getMap()[posY][posX + 1];
     }
 
-    private static int getNextRightPositionCell(int posX, int posY) {
-        return map[posY][posX - 1];
+    private int getNextRightPositionCell(int posX, int posY) {
+        return map.getMap()[posY][posX - 1];
     }
 
-    private static boolean canMove(int nextRightPositionCell) {
+    private boolean canMove(int nextRightPositionCell) {
         return nextRightPositionCell != 1;
     }
 
@@ -187,7 +203,7 @@ public class ExperimentMap {
                     }
                 }
                 case SOUTH -> {
-                    boolean isOutOfBounds = posY + 1 >= MAP_HEIGHT;
+                    boolean isOutOfBounds = posY + 1 >= map.getMapHeight();
                     if (isOutOfBounds) {
                         continue;
                     }
@@ -196,7 +212,7 @@ public class ExperimentMap {
                     }
                 }
                 case EAST -> {
-                    boolean isOutOfBounds = posX + 1 >= MAP_WIDTH;
+                    boolean isOutOfBounds = posX + 1 >= map.getMapWidth();
                     if (isOutOfBounds) {
                         continue;
                     }
@@ -223,8 +239,8 @@ public class ExperimentMap {
 
 
     public void resetMemory() {
-        for (int y = 0; y < MAP_HEIGHT; y++) {
-            for (int x = 0; x < MAP_WIDTH; x++) {
+        for (int y = 0; y < map.getMapHeight(); y++) {
+            for (int x = 0; x < map.getMapWidth(); x++) {
                 memoryPath[y][x] = 0;
             }
         }

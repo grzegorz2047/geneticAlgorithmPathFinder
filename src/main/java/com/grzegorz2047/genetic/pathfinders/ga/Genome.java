@@ -63,8 +63,8 @@ public class Genome {
             List<Integer> thisGene = getBinaryDirection(geneCodingLength, gene);
             //convert to decimal and add to list of directions
             directions.add(convertBinaryToIntegerDirection(thisGene));
-
         }
+        System.out.println(directions.size());
 
         return directions;
     }

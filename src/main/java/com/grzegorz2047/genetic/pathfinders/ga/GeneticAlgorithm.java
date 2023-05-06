@@ -10,9 +10,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
-import static kotlin.random.RandomKt.Random;
-
 public class GeneticAlgorithm {
+
 
 
     Random random = new Random();
@@ -34,12 +33,12 @@ public class GeneticAlgorithm {
     int currentGeneration;
 
     //create an instance of the map class
-    ExperimentMap experimentMap = new ExperimentMap();
+    ExperimentMap experimentMap;
 
     //we use another CBobsMap object to keep a record of
     //the best route each generation as an array of visited
     //cells. This is only used for display purposes.
-    ExperimentMap currentStoredMap = new ExperimentMap();
+    ExperimentMap currentStoredMap;
 
     //lets you know if the current run is in progress.
     boolean isInProgress;
@@ -60,6 +59,8 @@ public class GeneticAlgorithm {
         this.isInProgress = false;
         this.maxGeneration = maxGeneration;
         CreateStartPopulation();
+        experimentMap = new ExperimentMap();
+        currentStoredMap = new ExperimentMap();
     }
 
     //--------------------------RouletteWheelSelection-----------------
@@ -74,7 +75,7 @@ public class GeneticAlgorithm {
 
         int selectedgenome = 0;
 
-        for (int i = 0; i < populationSize; i++) {
+        for (int i = 0; i < genomes.size(); i++) {
 
             Genome genome = genomes.get(i);
             fitnessTotal += genome.getFitness();
@@ -140,7 +141,6 @@ public class GeneticAlgorithm {
         //The first thing we have to do is create a random population
         //of genomes
         CreateStartPopulation();
-
         isInProgress = true;
 
     }
@@ -234,12 +234,13 @@ public class GeneticAlgorithm {
             totalFitnessScore += genome.getFitness();
             //if this is the fittest genome found so far, store results
             if (genome.getFitness() > bestFitnessScore) {
+                System.out.println(bestFitnessScore);
                 bestFitnessScore = genome.getFitness();
                 fittestGenome = i;
                 currentStoredMap = new ExperimentMap(experimentMap.copyOfPath(directions, tempMemory).clone());
 
                 //Has Bob found the exit?
-                if (genome.getFitness() == 1) {
+                if (genome.getFitness() >= 1) {
                     //is so, stop the run
                     isInProgress = false;
                 }
@@ -262,10 +263,9 @@ public class GeneticAlgorithm {
 //	dimensions of the client window.
 //----------------------------------------------------------------
     public void render(double width, double height, GraphicsContext gc, Stage primaryStage) {
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, width, height);
+        renderWhite(width, height, gc);
         //render the map
-        experimentMap.renderMap(gc, (int) width, (int) height);
+        renderMap((int) width, (int) height, gc);
         //render the best route
         currentStoredMap.memoryRenderPath(gc, (int) width, (int) height);
 
@@ -276,8 +276,19 @@ public class GeneticAlgorithm {
 
     }
 
+    public void renderMap(int width, int height, GraphicsContext gc) {
+        experimentMap.renderMap(gc, width, height);
+    }
+
+    public void renderWhite(double width, double height, GraphicsContext gc) {
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 0, width, height);
+    }
+
 
     public boolean isRunning() {
         return isInProgress;
     }
+
+
 }
